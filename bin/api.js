@@ -17,7 +17,7 @@ router.post("/", async function(req, res) {
     try{
         switch(req.params.api){
             case "login":
-                var user = await db.get('SELECT id, email, family_name, first_name, family_name_kana, first_name_kana FROM users WHERE email = "' + req.body.email + '" AND password = "' + req.body.password + '";');
+                var user = await db.get("SELECT id, email, family_name, first_name, family_name_kana, first_name_kana FROM users WHERE email = '" + req.body.email + "' AND password = '" + req.body.password + "';");
                 if(!user){
                     res.statusCode = 404;
                     body = {error: 'メールアドレスまたはパスワードが違います' };
@@ -40,23 +40,23 @@ router.post("/", async function(req, res) {
                     body = {error:'Parameter missing.'};
                     break;
                 }
-                var user = await db.get('select id from users where email = "' + req.body.email + '";');
+                var user = await db.get("select id from users where email = '" + req.body.email + "';");
                 if(user){
                     res.statusCode = 500;
                     body = {error: 'メールアドレスが重複しています'};
                     break;
                 }
-                await db.run('insert into users (email, password, family_name, first_name, family_name_kana, first_name_kana) VALUES('
-                    + '"' + req.body.email + '",'
-                    + '"' + req.body.password + '",'
-                    + '"' + req.body.family_name + '",'
-                    + '"' + req.body.first_name + '",'
-                    + '"' + req.body.family_name_kana + '",'
-                    + '"' + req.body.first_name_kana + '"'
-                    + ');');
+                await db.run("insert into users (email, password, family_name, first_name, family_name_kana, first_name_kana) VALUES("
+                    + "'" + req.body.email + "',"
+                    + "'" + req.body.password + "',"
+                    + "'" + req.body.family_name + "',"
+                    + "'" + req.body.first_name + "',"
+                    + "'" + req.body.family_name_kana + "',"
+                    + "'" + req.body.first_name_kana + "'"
+                    + ");");
                 res.statusCode = 200;
                 res.setHeader('Set-Cookie', 'role=user; path=/; max-age=1800;');
-                var user = await db.get('select id, email, family_name, first_name, family_name_kana, first_name_kana from users where email = "' + req.body.email + '";');
+                var user = await db.get("select id, email, family_name, first_name, family_name_kana, first_name_kana from users where email = '" + req.body.email + "';");
                 user.display_name = user.family_name + " " + user.first_name;
                 session.user = user;
                 break;
@@ -106,11 +106,11 @@ router.post("/", async function(req, res) {
                     body = {error:'Parameter missing.'};
                     break;
                 }
-                await db.run('insert into comments (user_id, item_id, entry_date, comment) VALUES('
-                    + Number(req.body.user) + ','
-                    + Number(req.body.item) + ','
-                    + (new Date()).getTime() + ','
-                    + '"' + req.body.text.replace(/\r?\n/g, '<br>') + '");');
+                await db.run("insert into comments (user_id, item_id, entry_date, comment) VALUES("
+                    + Number(req.body.user) + ","
+                    + Number(req.body.item) + ","
+                    + (new Date()).getTime() + ","
+                    + "'" + req.body.text.replace(/\r?\n/g, '<br>') + "');");
                 break;
             case "checkout":
                 if(!session.cart || !req.body.pan || !req.body.expire_month || !req.body.expire_year || !req.body.cvc || !req.body.zip || !req.body.tel || !req.body.shipping_address || !req.body.total){
@@ -119,29 +119,29 @@ router.post("/", async function(req, res) {
                     break;
                 }
                 var date = new Date();
-                await db.run('insert into orders (user_id, order_date, pan, expire_month, expire_year, cvc, zip, tel, shipping_address, total) VALUES('
-                    + '"' + session.user.id + '",'
-                    + date.getTime() + ','
-                    + '"' + req.body.pan + '",'
-                    + '"' + req.body.expire_month + '",'
-                    + '"' + req.body.expire_year + '",'
-                    + '"' + req.body.cvc + '",'
-                    + '"' + req.body.zip + '",'
-                    + '"' + req.body.tel + '",'
-                    + '"' + req.body.shipping_address + '",'
-                    + '"' + req.body.total + '"'
-                    + ');');
-                var order = await db.get('select id from orders where user_id = "' + session.user.id + '" order by order_date desc limit 1;');
+                await db.run("insert into orders (user_id, order_date, pan, expire_month, expire_year, cvc, zip, tel, shipping_address, total) VALUES("
+                    + "'" + session.user.id + "',"
+                    + date.getTime() + ","
+                    + "'" + req.body.pan + "',"
+                    + "'" + req.body.expire_month + "',"
+                    + "'" + req.body.expire_year + "',"
+                    + "'" + req.body.cvc + "',"
+                    + "'" + req.body.zip + "',"
+                    + "'" + req.body.tel + "',"
+                    + "'" + req.body.shipping_address + "',"
+                    + "'" + req.body.total + "'"
+                    + ");");
+                var order = await db.get("select id from orders where user_id = '" + session.user.id + "' order by order_date desc limit 1;");
                 var order_id = order.id;
                 Object.keys(session.cart.items).forEach(async function(key){
-                    await db.run('insert into order_items (order_id, sku, item_name, item_title, price, amount) VALUES('
-                        + order_id + ','
-                        + '"' + session.cart.items[key].sku + '",'
-                        + '"' + session.cart.items[key].name + '",'
-                        + '"' + session.cart.items[key].title + '",'
-                        + '"' + session.cart.items[key].price + '",'
-                        + '"' + session.cart.items[key].amount + '"'
-                        + ');');
+                    await db.run("insert into order_items (order_id, sku, item_name, item_title, price, amount) VALUES("
+                        + order_id + ","
+                        + "'" + session.cart.items[key].sku + "',"
+                        + "'" + session.cart.items[key].name + "',"
+                        + "'" + session.cart.items[key].title + "',"
+                        + "'" + session.cart.items[key].price + "',"
+                        + "'" + session.cart.items[key].amount + "'"
+                        + ");");
                 });
                 session.cart = {};
                 res.statusCode = 200;
@@ -160,7 +160,7 @@ router.post("/", async function(req, res) {
                             body = {error:'Parameter missing.'};
                             break;
                         }
-                        db.run('update users set email = "' + req.body.email + '" where id = ' + session.user.id + ';');
+                        db.run("update users set email = '" + req.body.email + "' where id = " + session.user.id + ";");
                         res.statusCode = 200;
                         body = {};
                         break;
@@ -170,7 +170,7 @@ router.post("/", async function(req, res) {
                             body = {error:'Parameter missing.'};
                             break;
                         }
-                        db.run('update users set password = "' + req.body.password + '" where id = ' + session.user.id + ';');
+                        db.run("update users set password = '" + req.body.password + "' where id = " + session.user.id + ";");
                         res.statusCode = 200;
                         body = {};
                         break;
@@ -180,7 +180,7 @@ router.post("/", async function(req, res) {
                             body = {error:'Parameter missing.'};
                             break;
                         }
-                        db.run('update users set family_name = "' + req.body.familyName + '", family_name_kana = "' + req.body.familyNameKana + '" where id = ' + session.user.id + ';');
+                        db.run("update users set family_name = '" + req.body.familyName + "', family_name_kana = '" + req.body.familyNameKana + "' where id = " + session.user.id + ";");
                         res.statusCode = 200;
                         body = {};
                         break;
@@ -190,7 +190,7 @@ router.post("/", async function(req, res) {
                             body = {error:'Parameter missing.'};
                             break;
                         }
-                        db.run('update users set first_name = "' + req.body.firstName + '", first_name_kana = "' + req.body.firstNameKana + '" where id = ' + session.user.id + ';');
+                        db.run("update users set first_name = '" + req.body.firstName + "', first_name_kana = '" + req.body.firstNameKana + "' where id = " + session.user.id + ";");
                         res.statusCode = 200;
                         body = {};
                         break;

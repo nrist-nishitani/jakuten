@@ -14,9 +14,9 @@ function start() {
     router(req, res, finalhandler(req, res));
   });
 
-  router.use("/js/*", contents);
-  router.use("/css/*", contents);
-  router.use("/img/*", contents);
+  router.use("/js/{*path}", contents);
+  router.use("/css/{*path}", contents);
+  router.use("/img/{*path}", contents);
   router.use("/api/:api", session, api);
   router.get("/", session, require("./page/top"));
   router.use("/profile/", session, require("./page/profile"));
@@ -30,7 +30,7 @@ function start() {
   router.use("/thanks", session, require("./page/thanks"));
   router.use("/search", session, require("./page/search"));
   router.use("/admin", session, require("./page/admin"));
-  router.use("/*", contents);
+  router.use("/{*path}", contents);
 
   server.listen(3000);
   console.log("Welcome to JAKUTEN STORE.");

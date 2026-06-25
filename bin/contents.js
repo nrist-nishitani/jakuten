@@ -16,20 +16,47 @@ var fs = require('fs');
 const path = require('path');
 var url = require('parseurl');
 
+// Check if running as SEA
+let isSEA = false;
+let getAsset = null;
+try {
+  const sea = require('node:sea');
+  getAsset = sea.getAsset;
+  isSEA = true;
+} catch (err) {
+  // Not running as SEA
+}
+
 router.get("/", function(req, res) {
   res.statusCode = 200;
   console.log(' STATIC:' + req.originalUrl);
-  const file = path.join(__dirname, '../resources/contents/' + url.original(req).pathname);
+  const pathname = url.original(req).pathname;
+  const file = path.join(__dirname, '../resources/contents/' + pathname);
   res.setHeader("Content-Type", mimes[path.extname(file)] || 'text/plain');
-  fs.stat(file, function(err, stat){
-    if(err) return errorResponse(404, res);
-    if(stat.isFile()){
-      fs.createReadStream(file).pipe(res);
-      res.end;
-    }else{
+
+  if (isSEA) {
+    // Try to load from SEA embedded resources
+    try {
+      const assetKey = 'contents' + pathname.replace(/\\/g, '/');
+      const assetData = getAsset(assetKey);
+      // Convert ArrayBuffer to Buffer
+      const content = Buffer.from(assetData);
+      res.end(content);
+    } catch (err) {
       errorResponse(404, res);
     }
-  })
+  } else {
+    // Load from external file
+    fs.stat(file, function(err, stat){
+      if(err) return errorResponse(404, res);
+      if(stat.isFile()){
+        fs.createReadStream(file).pipe(res);
+        res.end;
+      }else{
+        errorResponse(404, res);
+      }
+    });
+  }
 });
 
 

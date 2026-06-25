@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 
-var SQL = require('sqlite3').verbose();
+var { DatabaseSync } = require('node:sqlite');
 
 var file = './db.sqlite';
 var db = prepare();
@@ -11,53 +11,58 @@ function prepare(){
         var stat = fs.statSync(file);
         stat.isFile();
     }catch(err){
-        var data = fs.readFileSync(path.join(__dirname, '../../resources/db.sqlite'));
+        // Try to load from SEA embedded resources first
+        var data;
+        try {
+            const { getAsset } = require('node:sea');
+            const assetData = getAsset('db/initial.sqlite');
+            // Convert ArrayBuffer to Buffer
+            data = Buffer.from(assetData);
+            console.log('Loaded database from SEA embedded resources');
+        } catch (seaErr) {
+            // Fallback to external file if not running as SEA
+            data = fs.readFileSync(path.join(__dirname, '../../resources/db.sqlite'));
+            console.log('Loaded database from external file');
+        }
         fs.writeFileSync('./db.sqlite', data);
     }
-    var db = new SQL.Database(file);
-    db.serialize();
+    var db = new DatabaseSync(file);
     return db;
 };
 
 exports.all =  function(sql, rows){
     return new Promise((resolve, reject) => {
         console.log('  SQL:' + sql);
-        db.serialize( function() {
-            db.all(sql, function (error, rows){
-                if(error){
-                    reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
-                }else{
-                    resolve(rows);
-                }
-            });
-        });
+        try{
+            var stmt = db.prepare(sql);
+            var result = stmt.all();
+            resolve(result);
+        }catch(error){
+            reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
+        }
     });
 }
 exports.get =  function(sql, rows){
     return new Promise((resolve, reject) => {
         console.log('  SQL:' + sql);
-        db.serialize( function() {
-            db.get(sql, function (error, row){
-                if(error){
-                    reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
-                }else{
-                    resolve(row);
-                }
-            });
-        });
+        try{
+            var stmt = db.prepare(sql);
+            var result = stmt.get();
+            resolve(result);
+        }catch(error){
+            reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
+        }
     });
 }
 exports.run =  function(sql, rows){
     return new Promise((resolve, reject) => {
         console.log('  SQL:' + sql);
-        db.serialize( function() {
-            db.run(sql, function (error){
-                if(error){
-                    reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
-                }else{
-                    resolve(null);
-                }
-            });
-        });
+        try{
+            var stmt = db.prepare(sql);
+            stmt.run();
+            resolve(null);
+        }catch(error){
+            reject(new Error('Databse Error: SQL=' + sql + '\n-----\n' + error.stack ));
+        }
     });
 }

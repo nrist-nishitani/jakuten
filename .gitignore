@@ -1,5 +1,34 @@
-.vscode/launch.json
-sqlite3.exe
-build.bat
+# Ignore all dotfiles and dot-directories by default
+.*
+.*/
+
+# Exception: Include this file itself
+!.gitignore
+
+# Dependencies
+node_modules/
+
+# Database
 db.sqlite
+
+# Build outputs
 *.exe
+dist/
+build/
+bundle.js
+sea-prep.blob
+sea-config.json
+jakuten-store
+jakuten-store.exe
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
